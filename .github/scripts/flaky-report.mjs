@@ -129,7 +129,12 @@ export function aggregate(jobResults) {
         sightings: [],
         title: test.title,
       }
-      entry.sightings.push({ error: test.error ?? '', job: result.job, retries: test.retries })
+      entry.sightings.push({
+        error: test.error ?? '',
+        job: result.job,
+        retries: test.retries,
+        via: test.via ?? 'in-job retry',
+      })
       byTest.set(key, entry)
     }
   }
@@ -152,13 +157,13 @@ export function runSummary(report, limit = 60) {
     '',
     `${report.occurrences} occurrences in ${report.jobsWithFlaky} of ${report.jobsReporting} reporting jobs; ${report.executed} tests executed in those jobs.`,
     '',
-    '| test | framework | jobs | max retries |',
-    '| --- | --- | --- | --- |',
+    '| test | framework | jobs | max retries | how it passed |',
+    '| --- | --- | --- | --- | --- |',
     ...report.tests
       .slice(0, limit)
       .map(
         (test) =>
-          `| ${cell(where(test))} ${cell(test.title)} | ${test.framework || '-'} | ${test.sightings.length} | ${test.maxRetries} |`,
+          `| ${cell(where(test))} ${cell(test.title)} | ${test.framework || '-'} | ${test.sightings.length} | ${test.maxRetries} | ${[...new Set(test.sightings.map((s) => s.via))].join(', ')} |`,
       ),
   ]
   if (report.tests.length > limit) {

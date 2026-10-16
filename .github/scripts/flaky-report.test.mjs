@@ -218,6 +218,23 @@ describe('aggregate', () => {
     assert.equal(report.distinctTests, 2)
   })
 
+  test('a test rescued by the fresh-runner retry says so, next to an in-job retry of the same test', () => {
+    const report = aggregate([
+      { flaky: [sighting(1)], job: 'E2E - versions (1/3)', stats: {} },
+      {
+        flaky: [sighting(2, { via: 'fresh-runner retry' })],
+        job: 'E2E retry - versions',
+        stats: {},
+      },
+    ])
+    assert.equal(report.distinctTests, 1)
+    assert.deepEqual(
+      report.tests[0].sightings.map((s) => s.via),
+      ['in-job retry', 'fresh-runner retry'],
+    )
+    assert.match(runSummary(report), /\| next \| 2 \| 2 \| in-job retry, fresh-runner retry \|/)
+  })
+
   test('summaries name the test and escape table pipes', () => {
     const report = aggregate([{ flaky: [sighting(1, { title: 'a | b' })], job: 'j', stats: {} }])
     assert.match(runSummary(report), /test\/versions\/e2e\.spec\.ts:565 a \\\| b \| next \| 1 \| 1/)
