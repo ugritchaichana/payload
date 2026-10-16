@@ -88,6 +88,9 @@ jobs:
             needs_visual:
               - '.github/workflows/main.yml'
               - '.github/scripts/visual/**'
+              - '.tool-versions'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
               - 'packages/**/*.css'
               - 'packages/**/*.scss'
               - 'packages/**/*.tsx'

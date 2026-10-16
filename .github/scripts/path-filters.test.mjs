@@ -146,6 +146,12 @@ describe('path filters select the tests for files that can change their outcome'
     assert.deepEqual(missing, [])
   })
 
+  test('needs_visual selects on package.json, pnpm-lock.yaml and .tool-versions (Playwright or Node bump)', () => {
+    for (const file of ['package.json', 'pnpm-lock.yaml', '.tool-versions']) {
+      assert.equal(selects('needs_visual', [file]), true, file)
+    }
+  })
+
   test('templates-only change still builds but does not run the test families', () => {
     assert.equal(selects('needs_build', ['templates/blank/package.json']), true)
     assert.equal(selects('needs_tests', ['templates/blank/package.json']), false)
