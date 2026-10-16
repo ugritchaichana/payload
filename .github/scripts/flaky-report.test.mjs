@@ -366,7 +366,9 @@ describe('wiring in main.yml and vitest.config.ts', () => {
     const job = jobs.get('flaky-report')
     assert.deepEqual([...job.needs].sort(), [
       'tests-e2e',
+      'tests-e2e-retry',
       'tests-int',
+      'tests-quarantine',
       'tests-unit',
       'visual-regression',
     ])

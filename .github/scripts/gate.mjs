@@ -4,11 +4,15 @@
 import { appendFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
+import { evaluateE2e, loadE2eArtifacts } from './lib/e2e-gate.mjs'
+
 const FAMILIES = ['needs_build', 'needs_tests', 'needs_visual', 'build_approvals', 'templates']
 
 /**
  * `runs`: 'always' or the `changes` outputs that select the job (any one true selects it).
+ * `onlyWhen`: a second run condition (a retry was planned, quarantine entries exist).
  * `advisory`: result is reported but never fails the gate, and a skip is not a defect.
+ * `mustRun`: with `advisory`, a skip while the job was expected still fails the gate.
  */
 export const POLICY = {
   changes: { runs: 'always' },
@@ -29,6 +33,14 @@ export const POLICY = {
   'tests-int': { runs: ['needs_tests'] },
   'e2e-prep': { runs: ['needs_tests'] },
   'tests-e2e': { runs: ['needs_tests'] },
+  'e2e-retry-plan': { runs: ['needs_tests'] },
+  'tests-e2e-retry': { runs: ['needs_tests'], onlyWhen: 'retryPlanned' },
+  'tests-quarantine': {
+    runs: ['needs_tests'],
+    onlyWhen: 'quarantineListed',
+    advisory: 'quarantined tests are reported, never gating',
+    mustRun: true,
+  },
   'visual-regression': { runs: ['needs_visual'] },
   analyze: {
     runs: ['needs_build'],
@@ -49,7 +61,11 @@ export const NOT_GATED = {
 
 const BAD = new Set(['failure', 'cancelled'])
 
-export function evaluate(needs) {
+/**
+ * `e2e`: `{ artifacts, planId }` as loaded by `loadE2eArtifacts`; required once the E2E matrix
+ * jobs succeeded, because their verdict files are the only evidence of which tests failed.
+ */
+export function evaluate(needs, e2e) {
   const rows = []
   const failures = []
   const warnings = []
@@ -72,6 +88,34 @@ export function evaluate(needs) {
     }
   }
 
+  const planOutput = needs['e2e-retry-plan']?.outputs?.count
+  const quarantineOutput = needs['e2e-matrix']?.outputs?.quarantine_count
+  const planned = e2e?.artifacts?.plan?.json?.retry?.length
+  const conditions = {
+    quarantineListed: Number(quarantineOutput) > 0,
+    retryPlanned: Math.max(Number(planOutput) || 0, planned || 0) > 0,
+  }
+
+  let e2eResult = null
+  if (selected.needs_tests && needs['tests-e2e']?.result === 'success') {
+    if (!Number.isInteger(Number(quarantineOutput)) || quarantineOutput === '') {
+      failures.push(
+        `e2e-matrix output quarantine_count is "${quarantineOutput ?? ''}", not a number`,
+      )
+    }
+    if (!e2e) {
+      failures.push('the gate was not given the E2E verdict artifacts')
+    } else {
+      e2eResult = evaluateE2e({
+        artifacts: e2e.artifacts,
+        matrixText: needs['e2e-matrix']?.outputs?.matrix,
+        planId: e2e.planId,
+        retryCountOutput: planOutput,
+      })
+      failures.push(...e2eResult.failures)
+    }
+  }
+
   for (const [name, policy] of Object.entries(POLICY)) {
     const job = needs[name]
     if (!job) {
@@ -80,7 +124,9 @@ export function evaluate(needs) {
       continue
     }
     const result = job.result
-    const expected = policy.runs === 'always' || policy.runs.some((family) => selected[family])
+    const expected =
+      (policy.runs === 'always' || policy.runs.some((family) => selected[family])) &&
+      (!policy.onlyWhen || conditions[policy.onlyWhen])
     let verdict = 'ok'
     let note = ''
 
@@ -90,6 +136,11 @@ export function evaluate(needs) {
         verdict = 'advisory'
       } else if (result === 'skipped') {
         verdict = 'not run'
+        if (policy.mustRun && expected) {
+          verdict = 'FAIL'
+          note = `skipped although expected (${policy.advisory})`
+          failures.push(`${name}: ${note}`)
+        }
       } else {
         verdict = 'advisory'
         warnings.push(`${name}: ${result} (${policy.advisory})`)
@@ -112,10 +163,13 @@ export function evaluate(needs) {
     rows.push({ name, result, verdict, note })
   }
 
-  return { ok: failures.length === 0, failures, warnings, rows, selected }
+  return { ok: failures.length === 0, failures, warnings, rows, selected, e2e: e2eResult }
 }
 
-export function renderSummary({ ok, failures, warnings, rows, selected }) {
+const testLine = (test) =>
+  `- ${test.framework} ${test.where ?? `${test.file}:${test.line}`} ${test.title}`
+
+export function renderSummary({ ok, failures, warnings, rows, selected, e2e }) {
   const lines = [
     `## All Green: ${ok ? 'PASS' : 'FAIL'}`,
     '',
@@ -129,6 +183,23 @@ export function renderSummary({ ok, failures, warnings, rows, selected }) {
       (row) => `| ${row.name} | ${row.result} | ${row.verdict}${row.note ? `: ${row.note}` : ''} |`,
     ),
   ]
+  if (e2e?.retried) {
+    lines.push('', `### E2E fresh-runner retry: ${e2e.retried} legs retried`)
+    if (e2e.rescued.length) {
+      lines.push(
+        '',
+        `Passed on the fresh runner, so reported as flaky (${e2e.rescued.length}):`,
+        ...e2e.rescued.map(testLine),
+      )
+    }
+    if (e2e.red.length) {
+      lines.push(
+        '',
+        `Failed again on the fresh runner, so red (${e2e.red.length}):`,
+        ...e2e.red.map(testLine),
+      )
+    }
+  }
   if (failures.length) {
     lines.push('', '### Failures', ...failures.map((failure) => `- ${failure}`))
   }
@@ -144,7 +215,10 @@ function main() {
     console.error('gate: NEEDS_JSON is not set')
     process.exit(1)
   }
-  const verdict = evaluate(JSON.parse(raw))
+  const verdict = evaluate(JSON.parse(raw), {
+    artifacts: loadE2eArtifacts(process.env.GATE_E2E_DIR ?? 'gate-in'),
+    planId: `${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`,
+  })
   const summary = renderSummary(verdict)
   console.log(summary)
   if (process.env.GITHUB_STEP_SUMMARY) {
