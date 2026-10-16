@@ -57,6 +57,7 @@ export default defineConfig({
    */
   outputDir: path.resolve(dirname, process.env.PLAYWRIGHT_OUTPUT_DIR ?? 'test-results'),
   workers: 16,
+  forbidOnly: CI,
   maxFailures: CI && isTanStack ? 30 : undefined,
   retries: CI ? (isTanStack ? 2 : 5) : undefined,
   /**
