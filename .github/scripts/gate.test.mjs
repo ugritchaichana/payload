@@ -163,6 +163,15 @@ describe('gate verdict', () => {
     assert.match(verdict.warnings.join('\n'), /analyze: failure/)
   })
 
+  test('check-template-build-approvals is advisory: a failure is listed but does not fail the gate', () => {
+    const outputs = { ...ALL_TRUE, build_approvals: 'true' }
+    const verdict = evaluate(needsOf(outputs, { 'check-template-build-approvals': 'failure' }))
+    assert.equal(verdict.ok, true)
+    assert.match(verdict.warnings.join('\n'), /check-template-build-approvals: failure/)
+    const row = verdict.rows.find((r) => r.name === 'check-template-build-approvals')
+    assert.equal(row.verdict, 'advisory')
+  })
+
   test('a job the gate does not know about fails', () => {
     const needs = needsOf(ALL_TRUE)
     needs['brand-new-job'] = { result: 'success', outputs: {} }

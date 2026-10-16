@@ -18,7 +18,10 @@ export const POLICY = {
   'pipeline-checks': { runs: 'always' },
   build: { runs: ['needs_build'] },
   'build-and-test-templates': { runs: ['needs_build', 'templates'] },
-  'check-template-build-approvals': { runs: ['build_approvals'] },
+  'check-template-build-approvals': {
+    runs: ['build_approvals'],
+    advisory: 'approval policy check, not gating upstream',
+  },
   'probe-next-canary': { runs: ['needs_tests'] },
   'tests-unit': { runs: ['needs_tests', 'needs_visual'] },
   'tests-types': { runs: ['needs_tests'] },
