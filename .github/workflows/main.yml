@@ -111,6 +111,21 @@ jobs:
           echo "templates: ${{ steps.filter.outputs.templates }}"
           echo "build_approvals: ${{ steps.filter.outputs.build_approvals }}"
 
+  # Fast guards that need no build: the pipeline's own script tests.
+  pipeline-checks:
+    name: Pipeline Checks
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - name: Pipeline script tests
+        run: node --test '.github/scripts/**/*.test.mjs'
+
   # Detects upstream Next.js canary publishes that are missing `@next/env` or
   # `@next/eslint-plugin-next` for the same version (would break
   # `pnpm create next-app@canary` with `ERR_PNPM_NO_MATCHING_VERSION`).
@@ -842,27 +857,51 @@ jobs:
         if: failure()
         run: docker logs content-api || true
 
+  # Depends on every job. `.github/scripts/gate.mjs` fails it when a job failed or was cancelled,
+  # and also when a job that `changes` selected ended `skipped` (e.g. E2E skipped because
+  # `E2E Prep` failed). The `toJSON(needs)` env value includes the matrix outputs (~36 KB today)
+  # and must stay under the 128 KB per-variable limit.
   all-green:
     name: All Green
     if: always()
     runs-on: ubuntu-26.04
     needs:
       [
+        changes,
         lint,
+        pipeline-checks,
+        int-matrix,
+        e2e-matrix,
+        probe-next-canary,
         build,
+        analyze,
         build-and-test-templates,
+        check-template-build-approvals,
         tests-unit,
-        tests-int,
-        tests-e2e,
         tests-types,
         tests-type-generation,
+        tests-int,
+        e2e-prep,
+        tests-e2e,
         tests-content-api,
         visual-regression,
       ]
 
     steps:
-      - if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
-        run: exit 1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .tool-versions
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - name: Decide verdict
+        run: node .github/scripts/gate.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
 
   publish-canary:
     name: Publish Canary
