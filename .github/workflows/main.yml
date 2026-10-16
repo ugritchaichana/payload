@@ -129,7 +129,9 @@ jobs:
           echo "templates: ${{ steps.filter.outputs.templates }}"
           echo "build_approvals: ${{ steps.filter.outputs.build_approvals }}"
 
-  # Fast guards that need no build: the pipeline's own script tests.
+  # Fast guards that need no build: the pipeline's own script tests, and the check that every
+  # committed spec file is run by some job or listed with a reason in
+  # `.github/test-reachability-exclusions.json`.
   pipeline-checks:
     name: Pipeline Checks
     runs-on: ubuntu-26.04
@@ -143,6 +145,9 @@ jobs:
 
       - name: Pipeline script tests
         run: node --test '.github/scripts/**/*.test.mjs'
+
+      - name: Every spec file is reachable by a job
+        run: node .github/scripts/test-reachability.mjs
 
   # Detects upstream Next.js canary publishes that are missing `@next/env` or
   # `@next/eslint-plugin-next` for the same version (would break
