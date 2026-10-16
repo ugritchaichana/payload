@@ -12,6 +12,7 @@ const figmaPath =
 const hasFigma = fs.existsSync(figmaPath)
 const evalFixturesDir = path.resolve(ROOT_DIR, 'test/evals/fixtures')
 const shouldWriteEvalReport = process.env.VITEST_EVAL_REPORT === 'true'
+const flakyReporter = path.resolve(ROOT_DIR, '.github/scripts/vitest-flaky-reporter.mjs')
 
 // Resolve graphql to a single copy to avoid duplicate-instance issues (instanceof checks fail).
 // pnpm's isolated linker means graphql isn't hoisted to root node_modules, so we resolve
@@ -52,8 +53,9 @@ export default defineConfig({
               singleFile: true,
             },
           ],
+          flakyReporter,
         ]
-      : ['default'],
+      : ['default', flakyReporter],
     watch: false, // too troublesome especially with the in memory DB setup
     // Retry failed tests up to 2 times in CI to handle flaky tests (e.g. due to timing-sensitive int tests like job queues, installation failures due to temporary network issues)
     retry: process.env.CI ? 2 : 0,

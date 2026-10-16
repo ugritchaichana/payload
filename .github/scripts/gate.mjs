@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// Decides the `All Green` verdict from `toJSON(needs)`. A required job that failed or was
-// cancelled fails the gate, and so does one that was skipped although `changes` selected it.
+// All Green verdict from toJSON(needs): fails on failure, cancelled, or skipped-although-selected.
 
 import { appendFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
@@ -41,6 +40,7 @@ export const POLICY = {
 
 /** Jobs of main.yml that the gate deliberately does not depend on. */
 export const NOT_GATED = {
+  'flaky-report': 'reporting only; waiting for it would lengthen the critical path',
   'publish-canary': 'runs after the gate and depends on it',
 }
 

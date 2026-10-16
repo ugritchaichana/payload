@@ -250,6 +250,8 @@ jobs:
     runs-on: ubuntu-26.04
     needs: [changes, build]
     if: needs.changes.outputs.needs_tests == 'true' || needs.changes.outputs.needs_visual == 'true'
+    env:
+      VITEST_FLAKY_DIR: ${{ github.workspace }}/.flaky-vitest
     steps:
       - uses: actions/checkout@v5
 
@@ -268,6 +270,21 @@ jobs:
 
       - name: Component Tests
         run: pnpm test:components
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --vitest-dir .flaky-vitest --out flaky-unit.json --always-write
+        env:
+          FLAKY_JOB: tests-unit
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: flaky-job-unit
+          path: flaky-unit.json
+          if-no-files-found: ignore
+          retention-days: 1
+          overwrite: true
 
   tests-types:
     runs-on: ubuntu-26.04
@@ -324,6 +341,7 @@ jobs:
       AWS_ACCESS_KEY_ID: localstack
       AWS_SECRET_ACCESS_KEY: localstack
       AWS_REGION: us-east-1
+      VITEST_FLAKY_DIR: ${{ github.workspace }}/.flaky-vitest
 
     steps:
       - uses: actions/checkout@v5
@@ -357,6 +375,20 @@ jobs:
           else
             pnpm test:int --shard=${{ matrix.shard }}/${{ matrix.total-shards }}
           fi
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --vitest-dir .flaky-vitest --out flaky-int-${{ strategy.job-index }}.json
+        env:
+          FLAKY_JOB: ${{ format('int-{0} ({1}/{2})', matrix.database, matrix.shard, matrix.total-shards) }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('flaky-int-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: flaky-job-int-${{ strategy.job-index }}
+          path: flaky-int-${{ strategy.job-index }}.json
+          retention-days: 1
+          overwrite: true
 
   # Generate the E2E test matrix from TypeScript config
   e2e-matrix:
@@ -506,6 +538,20 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
           PAYLOAD_DATABASE: mongodb
 
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --playwright-dir test --out flaky-e2e-${{ strategy.job-index }}.json
+        env:
+          FLAKY_JOB: ${{ format('E2E - {0} [{1}] ({2}/{3})', matrix.suite, matrix.framework, matrix.shard, matrix.total-shards) }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('flaky-e2e-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: flaky-job-e2e-${{ strategy.job-index }}
+          path: flaky-e2e-${{ strategy.job-index }}.json
+          retention-days: 1
+          overwrite: true
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -619,6 +665,20 @@ jobs:
 
       - name: Run visual regression tests
         run: docker exec visual-regression bash -lc "bash .github/scripts/visual/run-visual-suites.sh -- --fully-parallel"
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --playwright-dir test --out flaky-visual.json
+        env:
+          FLAKY_JOB: visual-regression
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles('flaky-visual.json') != '' }}
+        with:
+          name: flaky-job-visual
+          path: flaky-visual.json
+          retention-days: 1
+          overwrite: true
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
@@ -925,6 +985,40 @@ jobs:
         run: node .github/scripts/gate.mjs
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
+
+  # Reporting only, not part of the gate: lists every test that passed only after a retry.
+  flaky-report:
+    name: Flaky Report
+    runs-on: ubuntu-26.04
+    needs: [tests-unit, tests-int, tests-e2e, visual-regression]
+    if: ${{ always() && needs.tests-unit.result != 'skipped' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .tool-versions
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: flaky-job-*
+          path: flaky-jobs
+          merge-multiple: true
+
+      - name: Merge the flaky tests of this run
+        run: node .github/scripts/flaky-report.mjs aggregate --dir flaky-jobs --out flaky-report.json
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: flaky-report
+          path: flaky-report.json
+          retention-days: 30
+          overwrite: true
 
   publish-canary:
     name: Publish Canary

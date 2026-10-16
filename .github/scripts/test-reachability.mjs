@@ -1,8 +1,5 @@
 #!/usr/bin/env node
-// Every committed spec/test file must be run by some job of main.yml, or be listed with a reason in
-// `.github/test-reachability-exclusions.json`. Needs only Node: no install, no build.
-//
-// Usage: node .github/scripts/test-reachability.mjs [--root DIR] [--exclusions FILE] [--print-uncovered]
+// Every spec file must be run by a main.yml job or be listed in test-reachability-exclusions.json.
 
 import { spawnSync } from 'node:child_process'
 import { appendFileSync, existsSync, readFileSync } from 'node:fs'
