@@ -26,7 +26,11 @@ function write(...files) {
 
 const rulesFor = (overrides = {}) =>
   buildRules({
-    matrixSuites: ['foo', 'admin__e2e__general', 'lexical__collections__Blocks#config.blockreferences.ts'],
+    matrixSuites: [
+      'foo',
+      'admin__e2e__general',
+      'lexical__collections__Blocks#config.blockreferences.ts',
+    ],
     templates: ['blank'],
     tstycheGlobs: ['test/**/types.spec.ts'],
     visualSuites: ['admin__e2e__visual'],
@@ -151,9 +155,15 @@ describe('rule sources', () => {
       '.github/scripts/visual/run-visual-suites.sh',
       'test/runE2E.ts',
     )
-    writeFileSync(path.join(tree, '.github/workflows/main.yml'), 'jobs:\n  tests-unit:\n    name: x\n')
+    writeFileSync(
+      path.join(tree, '.github/workflows/main.yml'),
+      'jobs:\n  tests-unit:\n    name: x\n',
+    )
     const problems = checkRuleSources(tree, rulesFor())
-    assert.match(problems.join('\n'), /vitest\.config\.ts no longer contains "'packages\/\*\*\/\*\.spec\.ts'"/)
+    assert.match(
+      problems.join('\n'),
+      /vitest\.config\.ts no longer contains "'packages\/\*\*\/\*\.spec\.ts'"/,
+    )
     assert.match(problems.join('\n'), /job "tests-int" is not in main\.yml/)
   })
 })

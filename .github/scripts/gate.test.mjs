@@ -192,7 +192,9 @@ describe('gate wiring in main.yml', () => {
   })
 
   test('every other job is explicitly not gated, with a reason', () => {
-    const rest = [...jobs.keys()].filter((name) => name !== 'all-green' && !gateNeeds.includes(name))
+    const rest = [...jobs.keys()].filter(
+      (name) => name !== 'all-green' && !gateNeeds.includes(name),
+    )
     assert.deepEqual(rest.sort(), Object.keys(NOT_GATED).sort())
     for (const reason of Object.values(NOT_GATED)) {
       assert.ok(reason.length > 0)

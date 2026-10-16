@@ -40,7 +40,10 @@ export function staticRules(tstycheGlobs) {
       unitGlobs,
       ['**/*.rsc.spec.ts'],
       [
-        { file: VITEST_CONFIG, includes: [...unitGlobs.map((glob) => `'${glob}'`), "name: 'unit'"] },
+        {
+          file: VITEST_CONFIG,
+          includes: [...unitGlobs.map((glob) => `'${glob}'`), "name: 'unit'"],
+        },
         { file: MAIN_YML, includes: ['pnpm test:unit'] },
         { file: 'package.json', includes: ['vitest run --project unit', 'pnpm test:rsc'] },
       ],
@@ -77,10 +80,16 @@ export function staticRules(tstycheGlobs) {
         { file: 'package.json', includes: ['vitest --project int'] },
       ],
     ),
-    globRule('tests-types', 'tstyche (pnpm test:types)', tstycheGlobs, [], [
-      { file: MAIN_YML, includes: ['pnpm test:types'] },
-      { file: 'package.json', includes: ['"test:types": "tstyche"'] },
-    ]),
+    globRule(
+      'tests-types',
+      'tstyche (pnpm test:types)',
+      tstycheGlobs,
+      [],
+      [
+        { file: MAIN_YML, includes: ['pnpm test:types'] },
+        { file: 'package.json', includes: ['"test:types": "tstyche"'] },
+      ],
+    ),
     globRule(
       'pipeline-checks',
       'node --test of the pipeline scripts',
@@ -123,7 +132,9 @@ export function buildRules({ matrixSuites, visualSuites, templates, tstycheGlobs
       job: 'build-and-test-templates',
       via: 'main.yml template matrix (test:int and test:e2e)',
       matches: (file) => templates.some((template) => file.startsWith(`templates/${template}/`)),
-      sources: [{ file: MAIN_YML, includes: ['pnpm --filter ${{ matrix.template }} run test:int'] }],
+      sources: [
+        { file: MAIN_YML, includes: ['pnpm --filter ${{ matrix.template }} run test:int'] },
+      ],
     },
   ]
 }
@@ -182,7 +193,9 @@ export function analyze({ files, rules, exclusions }) {
   }
   for (const file of listed.keys()) {
     if (coveredBy.has(file)) {
-      problems.push(`excluded but now run by ${coveredBy.get(file).join(', ')}, remove the entry: ${file}`)
+      problems.push(
+        `excluded but now run by ${coveredBy.get(file).join(', ')}, remove the entry: ${file}`,
+      )
     } else if (!specs.includes(file)) {
       problems.push(`excluded path no longer exists as a spec file, remove the entry: ${file}`)
     }
@@ -256,11 +269,19 @@ function main() {
   if (args.includes('--print-uncovered')) {
     const { uncovered } = analyze({ files, rules, exclusions: [] })
     const reason = 'not run by upstream CI at 73d3dd8; status unknown'
-    console.log(JSON.stringify(uncovered.map((file) => ({ path: file, reason })), null, 2))
+    console.log(
+      JSON.stringify(
+        uncovered.map((file) => ({ path: file, reason })),
+        null,
+        2,
+      ),
+    )
     return
   }
 
-  const exclusions = existsSync(exclusionsFile) ? JSON.parse(readFileSync(exclusionsFile, 'utf8')) : []
+  const exclusions = existsSync(exclusionsFile)
+    ? JSON.parse(readFileSync(exclusionsFile, 'utf8'))
+    : []
   const result = analyze({ files, rules, exclusions })
   result.problems.unshift(...sourceProblems)
 

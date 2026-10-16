@@ -34,7 +34,8 @@ export const POLICY = {
   },
   'tests-content-api': {
     runs: ['needs_tests'],
-    advisory: 'needs upstream-only cloud credentials and is continue-on-error; its result is not evidence',
+    advisory:
+      'needs upstream-only cloud credentials and is continue-on-error; its result is not evidence',
   },
 }
 
@@ -55,7 +56,9 @@ export function evaluate(needs) {
   for (const family of FAMILIES) {
     const value = outputs[family]
     if (value !== 'true' && value !== 'false') {
-      failures.push(`changes output "${family}" is "${value ?? ''}", not true/false: selection unknown`)
+      failures.push(
+        `changes output "${family}" is "${value ?? ''}", not true/false: selection unknown`,
+      )
     }
     selected[family] = value === 'true'
   }
@@ -119,7 +122,9 @@ export function renderSummary({ ok, failures, warnings, rows, selected }) {
     '',
     '| job | result | verdict |',
     '| --- | --- | --- |',
-    ...rows.map((row) => `| ${row.name} | ${row.result} | ${row.verdict}${row.note ? `: ${row.note}` : ''} |`),
+    ...rows.map(
+      (row) => `| ${row.name} | ${row.result} | ${row.verdict}${row.note ? `: ${row.note}` : ''} |`,
+    ),
   ]
   if (failures.length) {
     lines.push('', '### Failures', ...failures.map((failure) => `- ${failure}`))

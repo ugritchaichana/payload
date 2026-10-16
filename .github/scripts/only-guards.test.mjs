@@ -9,7 +9,9 @@ const root = process.env.REPO_ROOT ?? path.resolve(import.meta.dirname, '../..')
 const files = walk(root)
 const read = (file) => readFileSync(path.join(root, file), 'utf8')
 
-const playwrightConfigs = files.filter((file) => /(^|\/)playwright[^/]*\.config\.[cm]?[jt]s$/.test(file))
+const playwrightConfigs = files.filter((file) =>
+  /(^|\/)playwright[^/]*\.config\.[cm]?[jt]s$/.test(file),
+)
 const vitestConfigs = files.filter((file) => /(^|\/)vitest[^/]*\.config\.[cm]?[jt]s$/.test(file))
 
 test('every Playwright config fails CI on a committed .only', () => {
