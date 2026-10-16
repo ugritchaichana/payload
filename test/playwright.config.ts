@@ -13,8 +13,9 @@ dotenv.config({ path: path.resolve(dirname, '..', '.env') })
 const CI = process.env.CI === 'true'
 const isTanStack = process.env.PAYLOAD_FRAMEWORK === 'tanstack-start'
 
-// CI only: .github/scripts/{quarantine,e2e-leg}.mjs write { grep, grepInvert } regex sources here.
-const selection: { grep?: string[]; grepInvert?: string[] } = process.env.PLAYWRIGHT_SELECTION_FILE
+// CI only: .github/scripts/{quarantine,e2e-leg}.mjs write { grep, grepInvert, retries } here.
+const selection: { grep?: string[]; grepInvert?: string[]; retries?: number } = process.env
+  .PLAYWRIGHT_SELECTION_FILE
   ? JSON.parse(readFileSync(process.env.PLAYWRIGHT_SELECTION_FILE, 'utf8'))
   : {}
 const toRegExps = (sources?: string[]) =>
@@ -69,7 +70,7 @@ export default defineConfig({
   grepInvert: toRegExps(selection.grepInvert),
   forbidOnly: CI,
   maxFailures: CI && isTanStack ? 30 : undefined,
-  retries: CI ? (isTanStack ? 2 : 5) : undefined,
+  retries: selection.retries ?? (CI ? (isTanStack ? 2 : 5) : undefined),
   /**
    * `PLAYWRIGHT_HTML_REPORT` (a Playwright-native env var that also controls the html reporter's
    * output folder) opts into an interactive HTML report locally — see `pnpm test:visual:preview`.

@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { legKey, matrixLegs, testKey } from './e2e-report.mjs'
+import { legKey, matrixLegs, MAX_RETRY_LEGS, testKey } from './e2e-report.mjs'
 
 const label = (test) => `${test.where ?? `${test.file}:${test.line}`} ${test.title}`
 
@@ -79,6 +79,13 @@ export function evaluateE2e({ matrixText, artifacts, planId, retryCountOutput })
     )
   }
 
+  const failedLegs = plan.legs.filter((leg) => leg.status === 'test-failures')
+  const systemic = Boolean(plan.systemic) || failedLegs.length > MAX_RETRY_LEGS
+  if (systemic) {
+    fail(
+      `systemic failure: ${failedLegs.length} legs have failed tests, more than the cap of ${MAX_RETRY_LEGS}; nothing was retried`,
+    )
+  }
   const planned = new Map(plan.retry.map((entry) => [entry.key, entry]))
   const byKey = new Map(plan.legs.map((leg) => [leg.key, leg]))
   for (const key of keys) {
@@ -86,6 +93,9 @@ export function evaluateE2e({ matrixText, artifacts, planId, retryCountOutput })
     if (!leg) {
       fail(`${key}: the plan has no entry for this leg`)
     } else if (leg.status === 'test-failures') {
+      if (systemic) {
+        continue
+      }
       const entry = planned.get(key)
       const scheduled = new Set((entry?.tests ?? []).map((t) => testKey(t.file, t.title)))
       for (const test of leg.failed ?? []) {

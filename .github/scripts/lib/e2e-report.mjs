@@ -180,6 +180,9 @@ export function classify({ exitCode, report, prefix = 'test' }) {
   }
 }
 
+// Most failed E2E legs in one of the last 100 first-attempt push runs (37651748919: 3); more is systemic.
+export const MAX_RETRY_LEGS = 3
+
 export const legKey = (leg) =>
   [leg.suite, leg.framework, leg.shard, leg.totalShards, Boolean(leg.cacheComponents)].join('|')
 

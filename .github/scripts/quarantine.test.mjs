@@ -8,6 +8,7 @@ import { describe, test } from 'node:test'
 import {
   entryKey,
   entryRegexSource,
+  expiringSoon,
   LIFETIME_DAYS,
   lint,
   quarantineMatrix,
@@ -23,13 +24,20 @@ let counter = 0
 const freshFile = (name) => path.join(dir, `${counter++}-${name}`)
 
 const real = readQuarantine()
-const realMatrixText = spawnSync(
-  process.execPath,
-  [path.join(root, '.github/workflows/e2e.config.ts')],
-  {
+const realMatrixText = (() => {
+  const run = spawnSync(process.execPath, [path.join(root, '.github/workflows/e2e.config.ts')], {
     encoding: 'utf8',
-  },
-).stdout
+  })
+  if (run.status !== 0 || !run.stdout.trim().startsWith('{')) {
+    const needed = /^nodejs (\S+)/m.exec(
+      readFileSync(path.join(root, '.tool-versions'), 'utf8'),
+    )?.[1]
+    throw new Error(
+      `cannot print the E2E matrix with Node ${process.version} (exit ${run.status}): e2e.config.ts is TypeScript run directly, which needs Node ${needed} from .tool-versions. ${run.stderr.trim().split('\n')[0]}`,
+    )
+  }
+  return run.stdout
+})()
 const SPEC = 'describe("Auth") it("works fine") test("another one")'
 
 const entry = (over = {}) => ({
@@ -145,6 +153,37 @@ describe('lint: each rule fails', () => {
   })
   test('lifetime is the 30 days of the policy', () => {
     assert.equal(LIFETIME_DAYS, 30)
+  })
+})
+
+describe('expiry warning', () => {
+  const warnings = (now) => expiringSoon([entry()], { now })
+
+  test('warns from 7 days before the expiry day up to the expiry day', () => {
+    assert.equal(warnings('2026-11-08').length, 1)
+    assert.match(warnings('2026-11-08')[0], /expires in 7 days \(2026-11-15\)/)
+    assert.equal(warnings('2026-11-15').length, 1)
+    assert.match(warnings('2026-11-15')[0], /expires today/)
+  })
+
+  test('says nothing earlier than 7 days, and nothing after expiry (lint fails then)', () => {
+    assert.deepEqual(warnings('2026-11-07'), [])
+    assert.deepEqual(warnings('2026-11-16'), [])
+    assert.notDeepEqual(problems([entry()], '2026-11-16'), [])
+  })
+
+  test('lint on the command line warns but exits 0 inside the window, and is silent outside', () => {
+    const file = freshFile('list.json')
+    writeFileSync(file, JSON.stringify({ entries: [real[2]], schema: 1 }))
+    const run = (now) =>
+      spawnSync(process.execPath, [script, 'lint', '--file', file, '--now', now], {
+        encoding: 'utf8',
+      })
+    const inside = run('2026-11-10')
+    assert.match(inside.stdout, /::warning title=Test quarantine::.*expires in 5 days/)
+    assert.doesNotMatch(inside.stdout, /::error/)
+    assert.equal(run('2026-10-20').stdout.includes('::warning'), false)
+    assert.match(run('2026-11-16').stdout, /::error/)
   })
 })
 
@@ -382,7 +421,10 @@ describe('Playwright config', () => {
     assert.match(config, /process\.env\.PLAYWRIGHT_SELECTION_FILE/)
     assert.match(config, /grep: toRegExps\(selection\.grep\)/)
     assert.match(config, /grepInvert: toRegExps\(selection\.grepInvert\)/)
-    assert.match(config, /retries: CI \? \(isTanStack \? 2 : 5\) : undefined/)
+    assert.match(
+      config,
+      /retries: selection\.retries \?\? \(CI \? \(isTanStack \? 2 : 5\) : undefined\)/,
+    )
     const vitest = readFileSync(path.join(root, 'vitest.config.ts'), 'utf8')
     assert.match(vitest, /retry: process\.env\.CI \? 2 : 0/)
   })

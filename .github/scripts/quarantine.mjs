@@ -37,6 +37,22 @@ export const entryRegexSource = (entry) =>
     titlePath: entry.titlePath,
   })
 
+export const WARN_DAYS = 7
+
+/** Warnings for entries that expire within WARN_DAYS (an expired entry is a lint error instead). */
+export function expiringSoon(entries, { now }) {
+  return entries.flatMap((entry) => {
+    const left = (day(entry.expires) - day(now)) / 86400000
+    if (!(left >= 0 && left <= WARN_DAYS)) {
+      return []
+    }
+    const when = left === 0 ? 'today' : `in ${left} days (${entry.expires})`
+    return [
+      `${entry.framework} ${entry.file}:${entry.line} expires ${when}: renew it with fresh evidence or delete it`,
+    ]
+  })
+}
+
 /** Problems with the list; `now` is an ISO day, `specText(file)` returns the spec source or null. */
 export function lint(entries, { now, specText }) {
   const errors = []
@@ -237,11 +253,15 @@ function main() {
   const entries = readQuarantine(option('--file') ?? DEFAULT_FILE)
 
   if (command === 'lint') {
+    const now = option('--now') ?? new Date().toISOString().slice(0, 10)
     const errors = lint(entries, {
-      now: option('--now') ?? new Date().toISOString().slice(0, 10),
+      now,
       specText: (file) =>
         existsSync(path.join(root, file)) ? readFileSync(path.join(root, file), 'utf8') : null,
     })
+    for (const warning of expiringSoon(entries, { now })) {
+      console.log(`::warning title=Test quarantine::${warning}`)
+    }
     for (const error of errors) {
       console.log(`::error title=Test quarantine::${error}`)
     }

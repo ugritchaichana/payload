@@ -12,7 +12,13 @@ import {
   rescuedAsFlaky,
   retrySelection,
 } from './e2e-leg.mjs'
-import { classify, legKey, readReports, titleRegexSource } from './lib/e2e-report.mjs'
+import {
+  classify,
+  legKey,
+  MAX_RETRY_LEGS,
+  readReports,
+  titleRegexSource,
+} from './lib/e2e-report.mjs'
 import { parseJobs } from './lib/workflow.mjs'
 
 const script = path.join(import.meta.dirname, 'e2e-leg.mjs')
@@ -598,11 +604,66 @@ describe('buildPlan', () => {
     )
   })
 
+  describe('systemic cap on retried legs', () => {
+    const suites = ['s1', 's2', 's3', 's4', 's5']
+    const bigMatrix = JSON.stringify({
+      include: suites.map((suite) => ({
+        cacheComponents: false,
+        framework: 'next',
+        parallel: false,
+        shard: 1,
+        suite,
+        'total-shards': 1,
+      })),
+    })
+    const failingLegs = (count) =>
+      suites.map((suite, i) =>
+        verdictFile(
+          `leg-verdict-${i}.json`,
+          legOf(suite, 1, 1),
+          i < count ? 'test-failures' : 'pass',
+          i < count ? test1 : [],
+        ),
+      )
+    const planWith = (count) =>
+      buildPlan({
+        matrixText: bigMatrix,
+        runAttempt: '1',
+        runId: '3',
+        verdictFiles: failingLegs(count),
+      })
+
+    test('the cap is the most failed E2E legs seen in a push run (3, run 37651748919)', () => {
+      assert.equal(MAX_RETRY_LEGS, 3)
+    })
+
+    test('below the cap every failing leg is retried', () => {
+      const { matrix, plan: result } = planWith(MAX_RETRY_LEGS - 1)
+      assert.equal(matrix.include.length, 2)
+      assert.equal(result.systemic, null)
+    })
+
+    test('at the cap every failing leg is still retried', () => {
+      const { matrix, plan: result } = planWith(MAX_RETRY_LEGS)
+      assert.equal(matrix.include.length, 3)
+      assert.equal(result.retry.length, 3)
+      assert.equal(result.systemic, null)
+    })
+
+    test('above the cap the run is systemic: nothing is retried and the plan says why', () => {
+      const { matrix, plan: result } = planWith(MAX_RETRY_LEGS + 1)
+      assert.deepEqual(matrix.include, [])
+      assert.deepEqual(result.retry, [])
+      assert.deepEqual(result.systemic, { cap: MAX_RETRY_LEGS, legs: MAX_RETRY_LEGS + 1 })
+      assert.equal(result.legs.filter((leg) => leg.status === 'test-failures').length, 4)
+    })
+  })
+
   test('select-retry returns exactly the planned tests as regexes', () => {
     const files = [...all]
     files[0] = verdictFile('leg-verdict-0.json', legOf('auth', 1, 1), 'test-failures', test1)
     const { plan: result } = plan(files)
-    assert.deepEqual(retrySelection(result, 0), { grep: test1.map((t) => t.grep) })
+    assert.deepEqual(retrySelection(result, 0), { grep: test1.map((t) => t.grep), retries: 0 })
     assert.throws(() => retrySelection(result, 3), /no tests for index 3/)
   })
 })
@@ -711,7 +772,8 @@ describe('command line', () => {
       run(['select-retry', '--plan', planPath, '--index', '0', '--out', selection]).status,
       0,
     )
-    const { grep } = JSON.parse(readFileSync(selection, 'utf8'))
+    const { grep, retries } = JSON.parse(readFileSync(selection, 'utf8'))
+    assert.equal(retries, 0, 'the retry runs each test once')
     assert.equal(grep.length, 1)
     assert.ok(new RegExp(grep[0]).test('chromium auth/e2e.spec.ts a'))
 

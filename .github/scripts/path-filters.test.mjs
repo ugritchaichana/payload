@@ -141,6 +141,33 @@ describe('path filters select the tests for files that can change their outcome'
     }
   })
 
+  test('pipeline scripts and the quarantine and reachability lists select build and tests', () => {
+    const files = [
+      '.github/scripts/gate.mjs',
+      '.github/scripts/e2e-leg.mjs',
+      '.github/scripts/lib/e2e-report.mjs',
+      '.github/scripts/quarantine.test.mjs',
+      '.github/test-quarantine.json',
+      '.github/test-reachability-exclusions.json',
+    ]
+    for (const file of files) {
+      assert.equal(selects('needs_tests', [file]), true, `needs_tests ${file}`)
+      assert.equal(selects('needs_build', [file]), true, `needs_build ${file}`)
+    }
+  })
+
+  test('other .github files still select nothing', () => {
+    for (const file of [
+      '.github/CODEOWNERS',
+      '.github/ai-reviewer-prompt.md',
+      '.github/workflows/stale.yml',
+    ]) {
+      for (const filter of ['needs_tests', 'needs_build']) {
+        assert.equal(selects(filter, [file]), false, `${filter} ${file}`)
+      }
+    }
+  })
+
   test('every needs_tests pattern is also a needs_build pattern (tests depend on build)', () => {
     const missing = filters.needs_tests.filter((pattern) => !filters.needs_build.includes(pattern))
     assert.deepEqual(missing, [])

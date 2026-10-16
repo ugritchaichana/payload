@@ -8,7 +8,14 @@ import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } 
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { classify, legKey, matrixLegs, readReports, testKey } from './lib/e2e-report.mjs'
+import {
+  classify,
+  legKey,
+  matrixLegs,
+  MAX_RETRY_LEGS,
+  readReports,
+  testKey,
+} from './lib/e2e-report.mjs'
 
 const SCHEMA = 1
 const VERDICTS = new Set(['pass', 'test-failures', 'infra'])
@@ -164,7 +171,9 @@ export function buildPlan({ matrixText, verdictFiles, runId, runAttempt }) {
     return { failed, key, reason: verdict.reason ?? '', status: verdict.verdict }
   })
 
-  const retry = planned.map((entry, retryIndex) => ({ ...entry, retryIndex }))
+  const systemic =
+    planned.length > MAX_RETRY_LEGS ? { cap: MAX_RETRY_LEGS, legs: planned.length } : null
+  const retry = systemic ? [] : planned.map((entry, retryIndex) => ({ ...entry, retryIndex }))
   const matrix = {
     include: retry.map(({ leg, retryIndex }) => ({
       cacheComponents: leg.cacheComponents,
@@ -178,7 +187,14 @@ export function buildPlan({ matrixText, verdictFiles, runId, runAttempt }) {
   }
   return {
     matrix,
-    plan: { legs: planLegs, planId: `${runId}-${runAttempt}`, retry, schema: SCHEMA, unexpected },
+    plan: {
+      legs: planLegs,
+      planId: `${runId}-${runAttempt}`,
+      retry,
+      schema: SCHEMA,
+      systemic,
+      unexpected,
+    },
   }
 }
 
@@ -187,7 +203,7 @@ export function retrySelection(plan, index) {
   if (!entry?.tests?.length) {
     throw new Error(`retry plan has no tests for index ${index}`)
   }
-  return { grep: entry.tests.map((test) => test.grep) }
+  return { grep: entry.tests.map((test) => test.grep), retries: 0 }
 }
 
 export function rescuedAsFlaky({ plan, verdict, framework }) {

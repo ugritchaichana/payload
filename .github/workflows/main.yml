@@ -47,6 +47,9 @@ jobs:
               - '.github/workflows/main.yml'
               - '.github/workflows/*.config.ts'
               - '.github/workflows/utilities/**'
+              - '.github/scripts/**'
+              - '.github/test-quarantine.json'
+              - '.github/test-reachability-exclusions.json'
               - '.github/actions/start-services/**'
               - '.github/actions/setup/**'
               - '.github/scripts/visual/**'
@@ -67,6 +70,9 @@ jobs:
               - '.github/workflows/main.yml'
               - '.github/workflows/*.config.ts'
               - '.github/workflows/utilities/**'
+              - '.github/scripts/**'
+              - '.github/test-quarantine.json'
+              - '.github/test-reachability-exclusions.json'
               - '.github/actions/start-services/**'
               - '.github/actions/setup/**'
               - '.github/actions/setup-playwright/**'
@@ -652,9 +658,9 @@ jobs:
           retention-days: 7
           overwrite: true
 
-  # Reruns only the failed tests of a leg, once, on a fresh runner with the same setup as the leg.
-  # In-job retries stay as configured. A test that passes here is reported as flaky; one that
-  # fails again is red.
+  # Reruns only the failed tests of a leg, once, on a fresh runner with the same setup as the leg
+  # (`retries: 0` comes from the selection file). A test that passes here is reported as flaky;
+  # one that fails again is red.
   tests-e2e-retry:
     runs-on: ubuntu-26.04
     needs: [e2e-prep, e2e-retry-plan]

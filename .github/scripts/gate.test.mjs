@@ -511,6 +511,44 @@ describe('E2E verdicts and the fresh-runner retry', () => {
     )
   })
 
+  test('more failing legs than the cap is a systemic failure: red, with that reason', () => {
+    const plan = planOf({ over: { retry: [], systemic: { cap: 3, legs: 4 } } })
+    plan.legs = [
+      ...plan.legs,
+      ...[1, 2, 3, 4].map((n) => ({
+        failed: [],
+        key: `x${n}|next|1|1|false`,
+        status: 'test-failures',
+      })),
+    ]
+    const verdict = evaluate(needsOf(ALL_TRUE), e2eOf({ plan }))
+    assert.equal(verdict.ok, false)
+    assert.match(
+      failures(verdict),
+      /systemic failure: 4 legs have failed tests, more than the cap of 3/,
+    )
+  })
+
+  test('the gate counts the failing legs itself, so a plan that hides a systemic run still fails', () => {
+    const failing = Object.fromEntries(KEYS.map((key) => [key, [authTest]]))
+    const plan = planOf({ failing })
+    plan.legs.push({ failed: [], key: 'extra|next|1|1|false', status: 'test-failures' })
+    const verdict = evaluate(retryNeeds({}, '4'), e2eOf({ plan }))
+    assert.match(failures(verdict), /systemic failure/)
+  })
+
+  test('at the cap the failing legs are retried, not called systemic', () => {
+    const failing = Object.fromEntries(KEYS.slice(0, 3).map((key) => [key, [authTest]]))
+    const plan = planOf({ failing })
+    const results = KEYS.slice(0, 3).map((key, i) => ({
+      ...retryResultOf(key, [authTest]),
+      name: `gate-e2e-retry-${i}.json`,
+    }))
+    const verdict = evaluate(retryNeeds({}, '3'), e2eOf({ plan, retryResults: results }))
+    assert.deepEqual(verdict.failures, [])
+    assert.equal(verdict.e2e.rescued.length, 3)
+  })
+
   test('tests-e2e not selected: no E2E artifacts are needed', () => {
     const outputs = { ...ALL_FALSE }
     const skipped = Object.fromEntries(
