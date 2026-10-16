@@ -4,7 +4,7 @@
 //   plan          after all legs: read every verdict, write the retry plan and the retry matrix
 //   select-retry  in a retry leg: turn the plan entry into a Playwright selection file
 
-import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -280,7 +280,7 @@ function main() {
     process.exit(handled ? 0 : 1)
   } else if (command === 'plan') {
     const directory = need('--verdicts')
-    const names = readdirSync(directory)
+    const names = (existsSync(directory) ? readdirSync(directory) : [])
       .filter((name) => /^leg-verdict-.*\.json$/.test(name))
       .sort()
     const { matrix, plan } = buildPlan({

@@ -792,6 +792,33 @@ describe('command line', () => {
     )
   })
 
+  test('plan: no verdict artifact downloaded at all marks every leg missing instead of crashing', () => {
+    const folder = freshDir()
+    const matrix = JSON.stringify({
+      include: [
+        {
+          cacheComponents: false,
+          framework: 'next',
+          parallel: false,
+          shard: 1,
+          suite: 'auth',
+          'total-shards': 1,
+        },
+      ],
+    })
+    const out = path.join(folder, 'gate-e2e-plan.json')
+    const result = run(['plan', '--verdicts', path.join(folder, 'never-created'), '--out', out], {
+      E2E_MATRIX: matrix,
+      GITHUB_RUN_ATTEMPT: '1',
+      GITHUB_RUN_ID: '7',
+    })
+    assert.equal(result.status, 0, result.stderr)
+    assert.deepEqual(
+      JSON.parse(readFileSync(out, 'utf8')).legs.map((leg) => leg.status),
+      ['missing'],
+    )
+  })
+
   test('readReports ignores other files and reports unreadable ones', () => {
     const folder = freshDir()
     writeFileSync(path.join(folder, 'other.json'), '{}')
