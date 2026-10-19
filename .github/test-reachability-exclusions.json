@@ -1,0 +1,310 @@
+[
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/annotation-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/convert-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/prepare-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/presentation-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/preview-chrome.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/record-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/scroll-demo.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".agents/skills/record-pr-demo/scripts/window-chrome.test.mjs",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/ai-reviewer/src/diff.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/ai-reviewer/src/providers/anthropic.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/ai-reviewer/src/review.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/ai-reviewer/src/sanitize.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/allowlist.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/auditReport.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/bumpAdvisor.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/catalog.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/cli.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/consumerAudit.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/packages.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/plan.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/registry.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/report.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/audit-dependencies/src/lib/severity.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": ".github/actions/release-commenter/src/index.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "packages/ui/src/forms/fieldSchemasToFormState/fieldSchemasToFormState.spec.js",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/_template/tests/e2e/admin.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/_template/tests/e2e/frontend.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/_template/tests/int/api.int.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/ecommerce/tests/e2e/admin.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/ecommerce/tests/e2e/frontend.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/ecommerce/tests/int/api.int.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-cloudflare-d1/tests/e2e/admin.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-cloudflare-d1/tests/e2e/frontend.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-cloudflare-d1/tests/int/api.int.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-vercel-website/tests/e2e/admin.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-vercel-website/tests/e2e/frontend.e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "templates/with-vercel-website/tests/int/api.int.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/a11y/screen-reader.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/admin/e2e/command-palette/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/admin/e2e/drawer/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/admin/e2e/sidebar-tabs/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/admin/e2e/tooltip/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/auth-api-key/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/auth-session/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/authorship/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/base-path/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/embed/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.building-plugins.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.collections.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.config.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.fields.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.mcp.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.negative.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/eval.official-plugins.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/paramsHash.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/runner/workdir.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/skillContent.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/evals/variant.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/Code/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/Group/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/SlugField/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/Textarea/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/UploadMulti/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/fields/collections/UploadRestricted/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical-mdx/tests/code1.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical-mdx/tests/default.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical-mdx/tests/restExamples.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical-mdx/tests/restExamples2.test.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical/benchmarks/perf.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical/collections/LexicalSlugFieldNameCollision/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/lexical/collections/LexicalViewsProviderFallback/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/localization-rtl/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/plugin-ecommerce/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/plugin-mcp/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/trailing-slash/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/v4/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  },
+  {
+    "path": "test/validate/e2e.spec.ts",
+    "reason": "not run by upstream CI at 73d3dd8; status unknown"
+  }
+]

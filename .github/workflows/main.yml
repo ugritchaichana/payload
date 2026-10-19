@@ -45,23 +45,47 @@ jobs:
           filters: |
             needs_build:
               - '.github/workflows/main.yml'
+              - '.github/workflows/*.config.ts'
+              - '.github/workflows/utilities/**'
+              - '.github/scripts/**'
+              - '.github/test-quarantine.json'
+              - '.github/test-reachability-exclusions.json'
               - '.github/actions/start-services/**'
               - '.github/actions/setup/**'
               - '.github/scripts/visual/**'
               - '.github/actions/setup-playwright/**'
+              - '.tool-versions'
               - 'packages/**'
               - 'test/**'
+              - 'tools/**'
               - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'package.json'
               - 'templates/**'
+              - 'tsconfig*.json'
+              - 'tstyche.json'
+              - 'turbo.json'
               - 'vitest.config.ts'
             needs_tests:
               - '.github/workflows/main.yml'
+              - '.github/workflows/*.config.ts'
+              - '.github/workflows/utilities/**'
+              - '.github/scripts/**'
+              - '.github/test-quarantine.json'
+              - '.github/test-reachability-exclusions.json'
               - '.github/actions/start-services/**'
+              - '.github/actions/setup/**'
+              - '.github/actions/setup-playwright/**'
+              - '.tool-versions'
               - 'packages/**'
               - 'test/**'
+              - 'tools/**'
               - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'package.json'
+              - 'tsconfig*.json'
+              - 'tstyche.json'
+              - 'turbo.json'
               - 'vitest.config.ts'
             templates:
               - 'templates/**'
@@ -70,6 +94,9 @@ jobs:
             needs_visual:
               - '.github/workflows/main.yml'
               - '.github/scripts/visual/**'
+              - '.tool-versions'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
               - 'packages/**/*.css'
               - 'packages/**/*.scss'
               - 'packages/**/*.tsx'
@@ -110,6 +137,29 @@ jobs:
           echo "needs_visual: ${{ steps.filter.outputs.needs_visual }}"
           echo "templates: ${{ steps.filter.outputs.templates }}"
           echo "build_approvals: ${{ steps.filter.outputs.build_approvals }}"
+
+  # Fast guards that need no build: the pipeline's own script tests, and the check that every
+  # committed spec file is run by some job or listed with a reason in
+  # `.github/test-reachability-exclusions.json`.
+  pipeline-checks:
+    name: Pipeline Checks
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - name: Pipeline script tests
+        run: node --test '.github/scripts/**/*.test.mjs'
+
+      - name: Every spec file is reachable by a job
+        run: node .github/scripts/test-reachability.mjs
+
+      - name: Test quarantine has no expired or malformed entry
+        run: node .github/scripts/quarantine.mjs lint
 
   # Detects upstream Next.js canary publishes that are missing `@next/env` or
   # `@next/eslint-plugin-next` for the same version (would break
@@ -212,6 +262,8 @@ jobs:
     runs-on: ubuntu-26.04
     needs: [changes, build]
     if: needs.changes.outputs.needs_tests == 'true' || needs.changes.outputs.needs_visual == 'true'
+    env:
+      VITEST_FLAKY_DIR: ${{ github.workspace }}/.flaky-vitest
     steps:
       - uses: actions/checkout@v5
 
@@ -230,6 +282,21 @@ jobs:
 
       - name: Component Tests
         run: pnpm test:components
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --vitest-dir .flaky-vitest --out flaky-unit.json --always-write
+        env:
+          FLAKY_JOB: tests-unit
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: flaky-job-unit
+          path: flaky-unit.json
+          if-no-files-found: ignore
+          retention-days: 1
+          overwrite: true
 
   tests-types:
     runs-on: ubuntu-26.04
@@ -286,6 +353,7 @@ jobs:
       AWS_ACCESS_KEY_ID: localstack
       AWS_SECRET_ACCESS_KEY: localstack
       AWS_REGION: us-east-1
+      VITEST_FLAKY_DIR: ${{ github.workspace }}/.flaky-vitest
 
     steps:
       - uses: actions/checkout@v5
@@ -320,16 +388,33 @@ jobs:
             pnpm test:int --shard=${{ matrix.shard }}/${{ matrix.total-shards }}
           fi
 
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --vitest-dir .flaky-vitest --out flaky-int-${{ strategy.job-index }}.json
+        env:
+          FLAKY_JOB: ${{ format('int-{0} ({1}/{2})', matrix.database, matrix.shard, matrix.total-shards) }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('flaky-int-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: flaky-job-int-${{ strategy.job-index }}
+          path: flaky-int-${{ strategy.job-index }}.json
+          retention-days: 1
+          overwrite: true
+
   # Generate the E2E test matrix from TypeScript config
   e2e-matrix:
     name: Setup E2E Matrix
     runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
+      quarantine_matrix: ${{ steps.quarantine.outputs.quarantine_matrix }}
+      quarantine_count: ${{ steps.quarantine.outputs.quarantine_count }}
     steps:
       - uses: actions/checkout@v5
         with:
           sparse-checkout: |
+            .github/scripts
             .github/workflows
             .tool-versions
 
@@ -342,6 +427,12 @@ jobs:
         run: |
           matrix=$(node .github/workflows/e2e.config.ts)
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+      - name: Generate quarantine matrix
+        id: quarantine
+        run: node .github/scripts/quarantine.mjs matrix
+        env:
+          E2E_MATRIX: ${{ steps.generate.outputs.matrix }}
 
   # Prepare prod test environment once, shared by all E2E shards
   e2e-prep:
@@ -387,6 +478,9 @@ jobs:
       SUITE_NAME: ${{ matrix.suite }}
       PAYLOAD_CACHE_COMPONENTS: ${{ matrix.cacheComponents && 'true' || '' }}
       PAYLOAD_FRAMEWORK: ${{ matrix.framework }}
+      E2E_SHARD: ${{ matrix.shard }}
+      E2E_TOTAL_SHARDS: ${{ matrix.total-shards }}
+      E2E_CACHE_COMPONENTS: ${{ matrix.cacheComponents }}
     steps:
       - uses: actions/checkout@v5
 
@@ -427,7 +521,15 @@ jobs:
         uses: ./.github/actions/setup-playwright
         timeout-minutes: 10
 
+      - name: Keep quarantined tests out of this leg
+        run: node .github/scripts/quarantine.mjs select --mode exclude --framework "$PAYLOAD_FRAMEWORK" --suite "$SUITE_NAME" --out "$RUNNER_TEMP/selection.json"
+
       - name: E2E Tests
+        # The step ends in `e2e-leg.mjs verdict`, which is the only thing that decides its exit code:
+        # 0 when every failure is a failed test (the retry job reruns those on a fresh runner), 1 for
+        # anything else. A failed test is therefore never the end of the story: the gate reads the
+        # verdict, the retry plan and the retry result.
+        #
         # E2E Test Execution Strategy:
         #
         # The e2e.config.ts defines each test suite with: { file, framework?, shards, parallel? }
@@ -462,11 +564,41 @@ jobs:
         # `visual-regression` job (gated on `needs_visual`), never by this unconditional matrix —
         # otherwise a `@visual` test would also run here on every PR that touches test/packages
         # code, including under the tanstack-start framework it was never baselined against.
-        run: PLAYWRIGHT_JSON_OUTPUT_NAME=results_${{ matrix.suite }}_${{ matrix.framework }}_${{ matrix.shard }}.json pnpm test:e2e:prod:server:run:noturbo ${{ matrix.suite }} --shard=${{ matrix.shard }}/${{ matrix.total-shards }} --fully-parallel --grep-invert="@visual"${{ matrix.parallel == false && ' --workers=1' || '' }}
+        shell: bash
+        run: |
+          set +e
+          PLAYWRIGHT_JSON_OUTPUT_NAME=results_${{ matrix.suite }}_${{ matrix.framework }}_${{ matrix.shard }}.json pnpm test:e2e:prod:server:run:noturbo ${{ matrix.suite }} --shard=${{ matrix.shard }}/${{ matrix.total-shards }} --fully-parallel --grep-invert="@visual"${{ matrix.parallel == false && ' --workers=1' || '' }}
+          code=$?
+          set -e
+          node .github/scripts/e2e-leg.mjs verdict --kind first --exit-code "$code" --dir test --out leg-verdict-${{ strategy.job-index }}.json
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: results_${{ matrix.suite }}_${{ matrix.framework }}_${{ matrix.shard }}.json
+          PLAYWRIGHT_SELECTION_FILE: ${{ runner.temp }}/selection.json
           NEXT_TELEMETRY_DISABLED: 1
           PAYLOAD_DATABASE: mongodb
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('leg-verdict-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: leg-verdict-${{ strategy.job-index }}
+          path: leg-verdict-${{ strategy.job-index }}.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --playwright-dir test --out flaky-e2e-${{ strategy.job-index }}.json
+        env:
+          FLAKY_JOB: ${{ format('E2E - {0} [{1}] ({2}/{3})', matrix.suite, matrix.framework, matrix.shard, matrix.total-shards) }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('flaky-e2e-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: flaky-job-e2e-${{ strategy.job-index }}
+          path: flaky-e2e-${{ strategy.job-index }}.json
+          retention-days: 1
+          overwrite: true
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
@@ -482,6 +614,243 @@ jobs:
       #     report-file: results_${{ matrix.suite }}.json
       #     report-tag: ${{ matrix.suite }}
       #     job-summary: true
+
+  # Reads the verdict of every E2E leg and plans the one fresh-runner retry: only the legs whose
+  # failures are failed tests (never setup, crash or timeout), and in them only the failed tests.
+  # The plan is uploaded for the retry legs and for the gate, which checks it against the matrix.
+  e2e-retry-plan:
+    name: E2E Retry Plan
+    runs-on: ubuntu-26.04
+    needs: [e2e-matrix, tests-e2e]
+    if: ${{ !cancelled() && needs.e2e-matrix.result == 'success' && needs.tests-e2e.result != 'skipped' }}
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .tool-versions
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: leg-verdict-*
+          path: verdicts
+          merge-multiple: true
+
+      - name: Plan the fresh-runner retry
+        id: plan
+        run: node .github/scripts/e2e-leg.mjs plan --verdicts verdicts --out gate-e2e-plan.json
+        env:
+          E2E_MATRIX: ${{ needs.e2e-matrix.outputs.matrix }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gate-e2e-plan
+          path: gate-e2e-plan.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+  # Reruns only the failed tests of a leg, once, on a fresh runner with the same setup as the leg
+  # (`retries: 0` comes from the selection file). A test that passes here is reported as flaky;
+  # one that fails again is red.
+  tests-e2e-retry:
+    runs-on: ubuntu-26.04
+    needs: [e2e-prep, e2e-retry-plan]
+    name: E2E retry - ${{ matrix.suite }} [${{ matrix.framework }}]${{ matrix.total-shards > 1 && format(' ({0}/{1})', matrix.shard, matrix.total-shards) || '' }}
+    if: ${{ !cancelled() && needs.e2e-prep.result == 'success' && needs.e2e-retry-plan.result == 'success' && needs.e2e-retry-plan.outputs.count != '0' }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.e2e-retry-plan.outputs.matrix) }}
+    env:
+      SUITE_NAME: ${{ matrix.suite }}
+      PAYLOAD_CACHE_COMPONENTS: ${{ matrix.cacheComponents && 'true' || '' }}
+      PAYLOAD_FRAMEWORK: ${{ matrix.framework }}
+      E2E_SHARD: ${{ matrix.shard }}
+      E2E_TOTAL_SHARDS: ${{ matrix.total-shards }}
+      E2E_CACHE_COMPONENTS: ${{ matrix.cacheComponents }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Node setup
+        uses: ./.github/actions/setup
+        with:
+          restore-build: true
+
+      - name: Download prepared test environment
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: e2e-prep-${{ github.sha }}
+          path: .
+
+      - name: Extract prepared test environment
+        shell: bash
+        run: |
+          if [ ! -f e2e-prep.tar.zst ]; then
+            echo "::error::The 'e2e-prep-${{ github.sha }}' artifact did not contain e2e-prep.tar.zst."
+            exit 1
+          fi
+          tar --zstd -xf e2e-prep.tar.zst
+          rm e2e-prep.tar.zst
+          if [ ! -d test/packed ] || [ ! -d test/node_modules ]; then
+            echo "::error::Extracted artifact is missing expected directories (test/packed or test/node_modules)."
+            exit 1
+          fi
+
+      - name: Start services
+        id: db
+        uses: ./.github/actions/start-services
+        with:
+          database: mongodb
+
+      - name: Setup Playwright
+        uses: ./.github/actions/setup-playwright
+        timeout-minutes: 10
+
+      - name: Download the retry plan
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: gate-e2e-plan
+          path: retry-plan
+
+      - name: Select the failed tests of this leg
+        run: node .github/scripts/e2e-leg.mjs select-retry --plan retry-plan/gate-e2e-plan.json --index ${{ matrix.retryIndex }} --out "$RUNNER_TEMP/selection.json"
+
+      - name: E2E Tests (failed tests only)
+        shell: bash
+        run: |
+          set +e
+          PLAYWRIGHT_JSON_OUTPUT_NAME=results_retry_${{ matrix.suite }}_${{ matrix.framework }}_${{ matrix.shard }}.json pnpm test:e2e:prod:server:run:noturbo ${{ matrix.suite }} --fully-parallel --grep-invert="@visual"${{ matrix.parallel == false && ' --workers=1' || '' }}
+          code=$?
+          set -e
+          node .github/scripts/e2e-leg.mjs verdict --kind retry --exit-code "$code" --dir test --plan retry-plan/gate-e2e-plan.json --retry-index ${{ matrix.retryIndex }} --out gate-e2e-retry-${{ strategy.job-index }}.json --flaky-out flaky-e2e-retry-${{ strategy.job-index }}.json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results_retry_${{ matrix.suite }}_${{ matrix.framework }}_${{ matrix.shard }}.json
+          PLAYWRIGHT_SELECTION_FILE: ${{ runner.temp }}/selection.json
+          NEXT_TELEMETRY_DISABLED: 1
+          PAYLOAD_DATABASE: mongodb
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('gate-e2e-retry-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: gate-e2e-retry-${{ strategy.job-index }}
+          path: gate-e2e-retry-${{ strategy.job-index }}.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('flaky-e2e-retry-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: flaky-job-e2e-retry-${{ strategy.job-index }}
+          path: flaky-e2e-retry-${{ strategy.job-index }}.json
+          retention-days: 1
+          overwrite: true
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: test-results-retry-${{ strategy.job-index }}
+          path: test/test-results/
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Runs every quarantined test (`.github/test-quarantine.json`) on every run, one leg per
+  # framework and suite, with the same setup as an E2E leg. Never gating: the gate only requires
+  # that it ran. Results are listed in the Flaky Report job summary, failures first.
+  tests-quarantine:
+    runs-on: ubuntu-26.04
+    needs: [e2e-matrix, e2e-prep]
+    name: Quarantine - ${{ matrix.suite }} [${{ matrix.framework }}]
+    if: ${{ needs.e2e-matrix.outputs.quarantine_count != '0' }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.e2e-matrix.outputs.quarantine_matrix) }}
+    env:
+      SUITE_NAME: ${{ matrix.suite }}
+      PAYLOAD_FRAMEWORK: ${{ matrix.framework }}
+      E2E_SHARD: 1
+      E2E_TOTAL_SHARDS: 1
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Node setup
+        uses: ./.github/actions/setup
+        with:
+          restore-build: true
+
+      - name: Download prepared test environment
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: e2e-prep-${{ github.sha }}
+          path: .
+
+      - name: Extract prepared test environment
+        shell: bash
+        run: |
+          if [ ! -f e2e-prep.tar.zst ]; then
+            echo "::error::The 'e2e-prep-${{ github.sha }}' artifact did not contain e2e-prep.tar.zst."
+            exit 1
+          fi
+          tar --zstd -xf e2e-prep.tar.zst
+          rm e2e-prep.tar.zst
+          if [ ! -d test/packed ] || [ ! -d test/node_modules ]; then
+            echo "::error::Extracted artifact is missing expected directories (test/packed or test/node_modules)."
+            exit 1
+          fi
+
+      - name: Start services
+        id: db
+        uses: ./.github/actions/start-services
+        with:
+          database: mongodb
+
+      - name: Setup Playwright
+        uses: ./.github/actions/setup-playwright
+        timeout-minutes: 10
+
+      - name: Select the quarantined tests of this suite
+        run: node .github/scripts/quarantine.mjs select --mode only --framework "$PAYLOAD_FRAMEWORK" --suite "$SUITE_NAME" --out "$RUNNER_TEMP/selection.json"
+
+      - name: E2E Tests (quarantined only)
+        shell: bash
+        run: |
+          set +e
+          PLAYWRIGHT_JSON_OUTPUT_NAME=results_quarantine_${{ matrix.suite }}_${{ matrix.framework }}.json pnpm test:e2e:prod:server:run:noturbo ${{ matrix.suite }} --fully-parallel --grep-invert="@visual"${{ matrix.parallel == false && ' --workers=1' || '' }}
+          code=$?
+          set -e
+          node .github/scripts/e2e-leg.mjs verdict --kind quarantine --exit-code "$code" --dir test --out quarantine-result-${{ strategy.job-index }}.json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results_quarantine_${{ matrix.suite }}_${{ matrix.framework }}.json
+          PLAYWRIGHT_SELECTION_FILE: ${{ runner.temp }}/selection.json
+          NEXT_TELEMETRY_DISABLED: 1
+          PAYLOAD_DATABASE: mongodb
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles(format('quarantine-result-{0}.json', strategy.job-index)) != '' }}
+        with:
+          name: quarantine-result-${{ strategy.job-index }}
+          path: quarantine-result-${{ strategy.job-index }}.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: test-results-quarantine-${{ strategy.job-index }}
+          path: test/test-results/
+          if-no-files-found: ignore
+          retention-days: 1
 
   # Runs `@visual`-tagged e2e tests (screenshot comparisons against baselines).
   # If this fails, reproduce locally with `pnpm test:visual`; update an intentional baseline with
@@ -581,6 +950,20 @@ jobs:
 
       - name: Run visual regression tests
         run: docker exec visual-regression bash -lc "bash .github/scripts/visual/run-visual-suites.sh -- --fully-parallel"
+
+      - name: List flaky tests
+        if: always()
+        run: node .github/scripts/flaky-report.mjs extract --playwright-dir test --out flaky-visual.json
+        env:
+          FLAKY_JOB: visual-regression
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && hashFiles('flaky-visual.json') != '' }}
+        with:
+          name: flaky-job-visual
+          path: flaky-visual.json
+          retention-days: 1
+          overwrite: true
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
@@ -842,27 +1225,110 @@ jobs:
         if: failure()
         run: docker logs content-api || true
 
+  # Depends on every job. `.github/scripts/gate.mjs` fails it when a job failed or was cancelled,
+  # and also when a job that `changes` selected ended `skipped` (e.g. E2E skipped because
+  # `E2E Prep` failed). The `toJSON(needs)` env value includes the matrix outputs (~41 KB today, up to
+  # ~76 KB when every leg is retried, measured)
+  # and must stay under the 128 KB per-variable limit.
   all-green:
     name: All Green
     if: always()
     runs-on: ubuntu-26.04
     needs:
       [
+        changes,
         lint,
+        pipeline-checks,
+        int-matrix,
+        e2e-matrix,
+        probe-next-canary,
         build,
+        analyze,
         build-and-test-templates,
+        check-template-build-approvals,
         tests-unit,
-        tests-int,
-        tests-e2e,
         tests-types,
         tests-type-generation,
+        tests-int,
+        e2e-prep,
+        tests-e2e,
+        e2e-retry-plan,
+        tests-e2e-retry,
+        tests-quarantine,
         tests-content-api,
         visual-regression,
       ]
 
     steps:
-      - if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
-        run: exit 1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .tool-versions
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      # The retry plan and the retry results; the per-leg verdicts are named leg-verdict-* and
+      # already folded into the plan.
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        if: needs.changes.outputs.needs_tests == 'true'
+        with:
+          pattern: gate-e2e-*
+          path: gate-in
+          merge-multiple: true
+
+      - name: Decide verdict
+        run: node .github/scripts/gate.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          GATE_E2E_DIR: gate-in
+
+  # Reporting only, not part of the gate: lists every test that passed only after a retry.
+  flaky-report:
+    name: Flaky Report
+    runs-on: ubuntu-26.04
+    needs: [tests-unit, tests-int, tests-e2e, tests-e2e-retry, tests-quarantine, visual-regression]
+    if: ${{ always() && needs.tests-unit.result != 'skipped' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .tool-versions
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .tool-versions
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: flaky-job-*
+          path: flaky-jobs
+          merge-multiple: true
+
+      - name: Merge the flaky tests of this run
+        run: node .github/scripts/flaky-report.mjs aggregate --dir flaky-jobs --out flaky-report.json
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        if: needs.tests-quarantine.result != 'skipped'
+        with:
+          pattern: quarantine-result-*
+          path: quarantine-results
+          merge-multiple: true
+
+      - name: List the quarantined tests of this run
+        if: needs.tests-quarantine.result != 'skipped'
+        run: node .github/scripts/quarantine.mjs report --dir quarantine-results
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: flaky-report
+          path: flaky-report.json
+          retention-days: 30
+          overwrite: true
 
   publish-canary:
     name: Publish Canary

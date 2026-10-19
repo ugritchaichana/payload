@@ -1,0 +1,512 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "framework": "next",
+      "suites": [
+        "plugin-multi-tenant",
+        "plugin-multi-tenant#config.conditionalProvider.ts"
+      ],
+      "file": "test/plugin-multi-tenant/e2e.spec.ts",
+      "line": 1163,
+      "titlePath": [
+        "Multi Tenant",
+        "Hierarchy Tenant Filtering",
+        "should filter move drawer miller columns by selected tenant"
+      ],
+      "reason": "Passed only after an in-job retry in 39 of 39 green main runs (100%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.click: Test ended.",
+      "evidence": {
+        "flakyRuns": 39,
+        "greenMainRuns": 39,
+        "ratePercent": 100,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.click: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "plugin-multi-tenant",
+        "plugin-multi-tenant#config.conditionalProvider.ts"
+      ],
+      "file": "test/plugin-multi-tenant/e2e.spec.ts",
+      "line": 1163,
+      "titlePath": [
+        "Multi Tenant",
+        "Hierarchy Tenant Filtering",
+        "should filter move drawer miller columns by selected tenant"
+      ],
+      "reason": "Passed only after an in-job retry in 39 of 39 green main runs (100%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.click: Test ended.",
+      "evidence": {
+        "flakyRuns": 39,
+        "greenMainRuns": 39,
+        "ratePercent": 100,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.click: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "auth"
+      ],
+      "file": "test/auth/e2e.spec.ts",
+      "line": 297,
+      "titlePath": [
+        "Auth",
+        "non create first user",
+        "authenticated users",
+        "should have up-to-date user in `useAuth` hook"
+      ],
+      "reason": "Passed only after an in-job retry in 38 of 39 green main runs (97%). Most common first-attempt error: Error: expect(locator).toHaveText(expected) failed | Locator: locator('#users-api-result') | Expected: \"Hello, world!\" | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 38,
+        "greenMainRuns": 39,
+        "ratePercent": 97,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toHaveText(expected) failed | Locator: locator('#users-api-result') | Expected: \"Hello, world!\" | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "auth"
+      ],
+      "file": "test/auth/e2e.spec.ts",
+      "line": 297,
+      "titlePath": [
+        "Auth",
+        "non create first user",
+        "authenticated users",
+        "should have up-to-date user in `useAuth` hook"
+      ],
+      "reason": "Passed only after an in-job retry in 38 of 39 green main runs (97%). Most common first-attempt error: Error: expect(locator).toHaveText(expected) failed | Locator: locator('#users-api-result') | Expected: \"Hello, world!\" | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 38,
+        "greenMainRuns": 39,
+        "ratePercent": 97,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toHaveText(expected) failed | Locator: locator('#users-api-result') | Expected: \"Hello, world!\" | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "lexical__collections___LexicalFullyFeatured"
+      ],
+      "file": "test/lexical/collections/_LexicalFullyFeatured/e2e.spec.ts",
+      "line": 70,
+      "titlePath": [
+        "Lexical Fully Featured",
+        "ensure upload node can be aligned"
+      ],
+      "reason": "Passed only after an in-job retry in 34 of 39 green main runs (87%). Most common first-attempt error: Error: expect(locator).toBeVisible() failed | Locator: locator('#slash-menu .slash-menu-popup') | Expected: visible | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 34,
+        "greenMainRuns": 39,
+        "ratePercent": 87,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toBeVisible() failed | Locator: locator('#slash-menu .slash-menu-popup') | Expected: visible | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "lexical__collections___LexicalFullyFeatured"
+      ],
+      "file": "test/lexical/collections/_LexicalFullyFeatured/e2e.spec.ts",
+      "line": 70,
+      "titlePath": [
+        "Lexical Fully Featured",
+        "ensure upload node can be aligned"
+      ],
+      "reason": "Passed only after an in-job retry in 34 of 39 green main runs (87%). Most common first-attempt error: Error: expect(locator).toBeVisible() failed | Locator: locator('#slash-menu .slash-menu-popup') | Expected: visible | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 34,
+        "greenMainRuns": 39,
+        "ratePercent": 87,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toBeVisible() failed | Locator: locator('#slash-menu .slash-menu-popup') | Expected: visible | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "admin__e2e__list-view"
+      ],
+      "file": "test/admin/e2e/list-view/e2e.spec.ts",
+      "line": 2243,
+      "titlePath": [
+        "List View",
+        "formatDocURL",
+        "should choose a document with the keyboard in a drawer after saving grid layout"
+      ],
+      "reason": "Passed only after an in-job retry in 29 of 39 green main runs (74%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.check: Test ended.",
+      "evidence": {
+        "flakyRuns": 29,
+        "greenMainRuns": 39,
+        "ratePercent": 74,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.check: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "admin__e2e__general"
+      ],
+      "file": "test/admin/e2e/general/e2e.spec.ts",
+      "line": 1207,
+      "titlePath": [
+        "General",
+        "i18n",
+        "should allow custom translation of locale labels"
+      ],
+      "reason": "Passed only after an in-job retry in 27 of 39 green main runs (69%). Most common first-attempt error: Error: expect(locator).toBeVisible() failed | Locator: locator('.popup__content') | Expected: visible | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 27,
+        "greenMainRuns": 39,
+        "ratePercent": 69,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toBeVisible() failed | Locator: locator('.popup__content') | Expected: visible | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "lexical__collections__Lexical__e2e__blocks",
+        "lexical__collections__Lexical__e2e__blocks#config.blockreferences.ts"
+      ],
+      "file": "test/lexical/collections/Lexical/e2e/blocks/e2e.spec.ts",
+      "line": 1389,
+      "titlePath": [
+        "lexicalBlocks",
+        "nested lexical editor in block",
+        "dynamic height of code editor is correctly calculated"
+      ],
+      "reason": "Passed only after an in-job retry in 24 of 39 green main runs (62%). Most common first-attempt error: Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM",
+      "evidence": {
+        "flakyRuns": 24,
+        "greenMainRuns": 39,
+        "ratePercent": 62,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "fields-relationship"
+      ],
+      "file": "test/fields-relationship/e2e.spec.ts",
+      "line": 769,
+      "titlePath": [
+        "Relationship Field",
+        "should allow filtering by polymorphic relationships with version drafts enabled"
+      ],
+      "reason": "Passed only after an in-job retry in 20 of 39 green main runs (51%). Most common first-attempt error: TimeoutError: page.waitForURL: Timeout Nms exceeded.",
+      "evidence": {
+        "flakyRuns": 20,
+        "greenMainRuns": 39,
+        "ratePercent": 51,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "TimeoutError: page.waitForURL: Timeout Nms exceeded."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "plugin-cloud-storage"
+      ],
+      "file": "test/plugin-cloud-storage/e2e.spec.ts",
+      "line": 43,
+      "titlePath": [
+        "Cloud Storage Plugin",
+        "should create file upload"
+      ],
+      "reason": "Passed only after an in-job retry in 19 of 39 green main runs (49%). Most common first-attempt error: Error: expect(locator).toBeVisible() failed | Locator: locator('#field-filemanager-filename') | Expected: visible | Error: element(s) not found",
+      "evidence": {
+        "flakyRuns": 19,
+        "greenMainRuns": 39,
+        "ratePercent": 49,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(locator).toBeVisible() failed | Locator: locator('#field-filemanager-filename') | Expected: visible | Error: element(s) not found"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "admin-routing"
+      ],
+      "file": "test/admin-routing/e2e.spec.ts",
+      "line": 147,
+      "titlePath": [
+        "Admin routing",
+        "Route transitions",
+        "should show route progress during navigation"
+      ],
+      "reason": "Passed only after an in-job retry in 18 of 39 green main runs (46%). Most common first-attempt error: Error: expect(received).toBe(expected) // Object.is equality | Expected: true",
+      "evidence": {
+        "flakyRuns": 18,
+        "greenMainRuns": 39,
+        "ratePercent": 46,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: expect(received).toBe(expected) // Object.is equality | Expected: true"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "admin-routing"
+      ],
+      "file": "test/admin-routing/e2e.spec.ts",
+      "line": 166,
+      "titlePath": [
+        "Admin routing",
+        "Route transitions",
+        "should show route progress until the next admin view is ready"
+      ],
+      "reason": "Passed only after an in-job retry in 18 of 39 green main runs (46%). Most common first-attempt error: Error: route.continue: Route is already handled!",
+      "evidence": {
+        "flakyRuns": 18,
+        "greenMainRuns": 39,
+        "ratePercent": 46,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: route.continue: Route is already handled!"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "plugin-multi-tenant",
+        "plugin-multi-tenant#config.conditionalProvider.ts"
+      ],
+      "file": "test/plugin-multi-tenant/e2e.spec.ts",
+      "line": 441,
+      "titlePath": [
+        "Multi Tenant",
+        "Documents",
+        "should filter internal links in Lexical editor"
+      ],
+      "reason": "Passed only after an in-job retry in 18 of 39 green main runs (46%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.click: Test ended.",
+      "evidence": {
+        "flakyRuns": 18,
+        "greenMainRuns": 39,
+        "ratePercent": 46,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.click: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "versions"
+      ],
+      "file": "test/versions/e2e.spec.ts",
+      "line": 565,
+      "titlePath": [
+        "Versions",
+        "draft collections",
+        "collection - autosave - should not create duplicates when clicking Create new"
+      ],
+      "reason": "Passed only after an in-job retry in 17 of 39 green main runs (44%). Most common first-attempt error: Error: Minified React error #N; visit https://react.dev/errors/N for the full message or use the non-minified dev environment for full errors and additional ...",
+      "evidence": {
+        "flakyRuns": 17,
+        "greenMainRuns": 39,
+        "ratePercent": 44,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: Minified React error #N; visit https://react.dev/errors/N for the full message or use the non-minified dev environment for full errors and additional ..."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "fields__collections__Blocks",
+        "fields__collections__Blocks#config.blockreferences.ts"
+      ],
+      "file": "test/fields/collections/Blocks/e2e.spec.ts",
+      "line": 248,
+      "titlePath": [
+        "Block fields",
+        "should add different blocks with similar field configs"
+      ],
+      "reason": "Passed only after an in-job retry in 16 of 39 green main runs (41%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.click: Test ended.",
+      "evidence": {
+        "flakyRuns": 16,
+        "greenMainRuns": 39,
+        "ratePercent": 41,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.click: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "versions"
+      ],
+      "file": "test/versions/e2e.spec.ts",
+      "line": 726,
+      "titlePath": [
+        "Versions",
+        "draft collections",
+        "collection — autosave should only update the current document"
+      ],
+      "reason": "Passed only after an in-job retry in 14 of 39 green main runs (36%). Most common first-attempt error: Error: Minified React error #N; visit https://react.dev/errors/N for the full message or use the non-minified dev environment for full errors and additional ...",
+      "evidence": {
+        "flakyRuns": 14,
+        "greenMainRuns": 39,
+        "ratePercent": 36,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: Minified React error #N; visit https://react.dev/errors/N for the full message or use the non-minified dev environment for full errors and additional ..."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "plugin-multi-tenant",
+        "plugin-multi-tenant#config.conditionalProvider.ts"
+      ],
+      "file": "test/plugin-multi-tenant/e2e.spec.ts",
+      "line": 476,
+      "titlePath": [
+        "Multi Tenant",
+        "Documents",
+        "should filter relationship fields in Lexical BlocksFeature"
+      ],
+      "reason": "Passed only after an in-job retry in 14 of 39 green main runs (36%). Most common first-attempt error: Test timeout of Nms exceeded. | Error: locator.click: Test ended.",
+      "evidence": {
+        "flakyRuns": 14,
+        "greenMainRuns": 39,
+        "ratePercent": 36,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded. | Error: locator.click: Test ended."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "lexical__collections__LexicalAutosaveBlock"
+      ],
+      "file": "test/lexical/collections/LexicalAutosaveBlock/e2e.spec.ts",
+      "line": 47,
+      "titlePath": [
+        "Lexical: nested richText loses focus on parent autosave",
+        "typing in a nested richText keeps focus and retains characters across autosaves"
+      ],
+      "reason": "Passed only after an in-job retry in 13 of 39 green main runs (33%). Most common first-attempt error: Test timeout of Nms exceeded while running \"beforeEach\" hook.",
+      "evidence": {
+        "flakyRuns": 13,
+        "greenMainRuns": 39,
+        "ratePercent": 33,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Test timeout of Nms exceeded while running \"beforeEach\" hook."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "lexical__collections__Lexical__e2e__blocks",
+        "lexical__collections__Lexical__e2e__blocks#config.blockreferences.ts"
+      ],
+      "file": "test/lexical/collections/Lexical/e2e/blocks/e2e.spec.ts",
+      "line": 924,
+      "titlePath": [
+        "lexicalBlocks",
+        "nested lexical editor in block",
+        "ensure creation of a lexical, lexical-field-block, which contains another lexical, lexical-and-upload-field-block, works and that the sub-upload field is properly populated"
+      ],
+      "reason": "Passed only after an in-job retry in 12 of 39 green main runs (31%). Most common first-attempt error: Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM",
+      "evidence": {
+        "flakyRuns": 12,
+        "greenMainRuns": 39,
+        "ratePercent": 31,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM"
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "next",
+      "suites": [
+        "fields-relationship"
+      ],
+      "file": "test/fields-relationship/e2e.spec.ts",
+      "line": 769,
+      "titlePath": [
+        "Relationship Field",
+        "should allow filtering by polymorphic relationships with version drafts enabled"
+      ],
+      "reason": "Passed only after an in-job retry in 10 of 39 green main runs (26%). Most common first-attempt error: TimeoutError: page.waitForURL: Timeout Nms exceeded.",
+      "evidence": {
+        "flakyRuns": 10,
+        "greenMainRuns": 39,
+        "ratePercent": 26,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "TimeoutError: page.waitForURL: Timeout Nms exceeded."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    },
+    {
+      "framework": "tanstack-start",
+      "suites": [
+        "fields__collections__Number"
+      ],
+      "file": "test/fields/collections/Number/e2e.spec.ts",
+      "line": 99,
+      "titlePath": [
+        "Number",
+        "should filter Number field hasMany: false in the collection view - is not in"
+      ],
+      "reason": "Passed only after an in-job retry in 10 of 39 green main runs (26%). Most common first-attempt error: TimeoutError: page.waitForURL: Timeout Nms exceeded.",
+      "evidence": {
+        "flakyRuns": 10,
+        "greenMainRuns": 39,
+        "ratePercent": 26,
+        "window": "main push runs 37506238350 to 38833762620 (2026-10-06 to 2026-10-16), green attempts of the last 100 runs",
+        "firstAttemptError": "TimeoutError: page.waitForURL: Timeout Nms exceeded."
+      },
+      "added": "2026-10-16",
+      "expires": "2026-11-15"
+    }
+  ]
+}
